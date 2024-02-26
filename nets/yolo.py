@@ -80,6 +80,33 @@ def yolo_head(filters_list, in_filters):
     )
     return m
 
+
+def extract_prediction(out):
+    """
+    从输出中提取预测结果，将其重新排列为适合后续处理的形状。
+
+    参数：
+    - out: 模型的输出张量
+
+    返回：
+    - 提取后的预测结果
+
+    """
+
+    # 获取输入张量的维度信息
+    batch_size, attr, input_height, input_width = out.size()
+
+    # 重新排列张量的形状，以便后续处理
+    prediction = out.view(batch_size, 3, attr // 3, input_height, input_width).permute(0, 1, 3, 4, 2).contiguous()
+
+    # 获取边界框和置信度分数
+    bbox = prediction[..., :4]
+    conf = torch.sigmoid(prediction[..., 4:])
+
+    # 将边界框和置信度分数合并，重新排列张量形状
+    out = torch.cat((bbox, conf), dim=-1).permute(0, 1, 4, 2, 3).reshape(batch_size, attr, input_height, input_width)
+
+    return out
 #---------------------------------------------------#
 #   yolo_body
 #---------------------------------------------------#
@@ -170,16 +197,22 @@ class YoloBody(nn.Module):
         #   y3=(batch_size,75,52,52)
         #---------------------------------------------------#
         out2 = self.yolo_head3(P3)
+
         #---------------------------------------------------#
         #   第二个特征层
         #   y2=(batch_size,75,26,26)
         #---------------------------------------------------#
         out1 = self.yolo_head2(P4)
+
         #---------------------------------------------------#
         #   第一个特征层
         #   y1=(batch_size,75,13,13)
         #---------------------------------------------------#
         out0 = self.yolo_head1(P5)
+
+        out0 = extract_prediction(out0)
+        out1 = extract_prediction(out1)
+        out2 = extract_prediction(out2)
 
         return out0, out1, out2
 

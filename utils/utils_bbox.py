@@ -63,11 +63,13 @@ class DecodeBox():
             #-----------------------------------------------#
             #   获得置信度，是否有物体
             #-----------------------------------------------#
-            conf        = torch.sigmoid(prediction[..., 4])
+            # conf        = torch.sigmoid(prediction[..., 4])
+            conf        = prediction[..., 4]
             #-----------------------------------------------#
             #   种类置信度
             #-----------------------------------------------#
-            pred_cls    = torch.sigmoid(prediction[..., 5:])
+            # pred_cls    = torch.sigmoid(prediction[..., 5:])
+            pred_cls    = prediction[..., 5:]
 
             FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
             LongTensor  = torch.cuda.LongTensor if x.is_cuda else torch.LongTensor
@@ -278,11 +280,13 @@ class DecodeBoxNP():
             #-----------------------------------------------#
             #   获得置信度，是否有物体
             #-----------------------------------------------#
-            conf        = self.sigmoid(prediction[..., 4])
+            # conf        = self.sigmoid(prediction[..., 4])
+            conf        = prediction[..., 4]
             #-----------------------------------------------#
             #   种类置信度
             #-----------------------------------------------#
-            pred_cls    = self.sigmoid(prediction[..., 5:])
+            # pred_cls    = self.sigmoid(prediction[..., 5:])
+            pred_cls    = (prediction[..., 5:]
 
             #----------------------------------------------------------#
             #   生成网格，先验框中心，网格左上角 
